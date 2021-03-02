@@ -38,7 +38,6 @@
     ((= s 1) 0)
     (else (error "Invalid signal" s))))
 
-
 (define (inverter input output)
   (define (invert-input)
     (let ((new-value (logical-not (get-signal input))))
@@ -126,7 +125,7 @@
   (null? (segments agenda)))
 
 (define (add-to-agenda! time action agenda)
-  (define (belongs-before? segs)
+  (define (not-belongs-before? segs)
     (or (null? segs)
         (< time (segment-time (car segs)))))
   (define (make-new-time-segment)
@@ -137,13 +136,13 @@
     (if (= time (segment-time (car segs)))
       (insert-queue! (segment-queue (car segs))
                      action)
-      (if (belongs-before? (cdr segs))
+      (if (not-belongs-before? (cdr segs))
         (set-cdr! segs (cons (make-new-time-segment)
                              (cdr segs)))
         (add-to-segments! (cdr segs)))))
 
   (let ((segs (segments agenda)))
-    (if (belongs-before? segs)
+    (if (not-belongs-before? segs)
       (set-cdr! agenda (cons (make-new-time-segment)
                              segs))
       (add-to-segments! segs))))
