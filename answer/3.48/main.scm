@@ -1,34 +1,32 @@
-(define (false 1))
-(define (true 0))
-
 (define (test-and-set! cell)
  (if (car cell)
-  true
-  (begin (set-car! cell true)
-   false)))
+  #t
+  (begin (set-car! cell #t)
+   #f)))
 
 (define (clear! cell)
- (set-car! cell false))
+ (set-car! cell #f))
 
 (define (make-mutex)
- (let ((cell (list false)))
+ (let ((cell (list #f)))
   (define (the-mutex m)
    (cond 
     ((eq? m 'acquire)
      (if (test-and-set! cell)
-      (the-mutex 'acquire)))
+      (the-mutex 'acquire)
+      ))
     ((eq? m 'release) (clear! cell))))
   the-mutex))
 
 (define (make-serializer)
- (let ((mut (make-mutex)))
-  (lambda (p)
-   (define (serialized-p . args)
-    (mut 'acquire)
-    (let ((val (apply p args)))
-     (mut 'release)
-     val))
-   serialized-p)))
+  (let ((mutex (make-mutex)))
+    (lambda (p)
+      (define (serialized-p . args)
+        (mutex 'acquire)
+        (let ((val (apply p args)))
+          (mutex 'release)
+          val))
+      serialized-p)))
 
 (define get-id
  (let ((id 0))
@@ -39,7 +37,7 @@
 (define (make-account-and-serializer balance)
  (define (withdraw amount)
   (if (>= balance amount)
-   (began (set! balance (- balance amount))
+   (begin (set! balance (- balance amount))
     balance)
    "Insufficent funds"))
  (define (deposit amount)
@@ -67,7 +65,7 @@
 (define (serialized-exchange account1 account2)
  (let ((serializer1 (account1 'serializer))
        (serializer2 (account2 'serializer)))
-  (if ((account1 'id) < (account2 'id))
+  (if (< (account1 'id) (account2 'id))
    ((serializer1 (serializer2 exchange))
     account1
     account2)
@@ -82,7 +80,15 @@
        (d (account 'deposit)))
   ((s d) amount)))
 
+(define (non-serlialized-deposit account amount)
+ (let ((d (account 'deposit)))
+  (d amount)))
+
 ; Main
+(if #t (display "#t is True") (display "#t is False"))
+(newline)
+(if #f (display "#f is True") (display "#f is False"))
+(newline)
 (define a1 (make-account-and-serializer 100))
 (display (a1 'balance))
 (newline)
@@ -93,4 +99,15 @@
 (display (a2 'balance))
 (newline)
 (display (a2 'id))
+(newline)
+
+(display (deposit a2 100))
+(newline)
+(display (a2 'balance))
+(newline)
+
+(serialized-exchange a1 a2)
+(display (a1 'balance))
+(newline)
+(display (a2 'balance))
 (newline)
