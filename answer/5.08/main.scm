@@ -130,9 +130,11 @@
       (lambda (insts labels)
         (let ((next-inst (car text)))
           (if (symbol? next-inst)
-            (receive insts
-                     (cons (make-label-entry next-inst insts)
-                           labels))
+            (if (assoc next-inst labels) 
+              (error "multiple usage of the same label -- EXTRACT_LABELS" next-inst)
+              (receive insts
+                       (cons (make-label-entry next-inst insts)
+                             labels)))
             (receive (cons (make-instruction next-inst)
                            insts)
                      labels)))))))
@@ -350,24 +352,22 @@
     false))
  
 ; Main
-(define expt-machine
+(define machine
   (make-machine
-    '(counter base product)
+    '(a)
     (list (list '- -) (list '* *) (list '= =))
-    '(init
-       (assign product (const 1))
-      test-counter
-       (test (op =) (reg counter) (const 0))
-       (branch (label expt-done))
-       (assign counter (op -) (reg counter) (const 1))
-       (assign product (op *) (reg base) (reg product))
-       (goto (label test-counter))
-      expt-done)))
+    '(
+    start
+    (goto (label here))
+    here1
+    (assign a (const 3))
+    (goto (label there))
+    here
+    (assign a (const 4))
+    (goto (label there))
+    there
+    )))
 
-(output (set-register-contents! expt-machine 'counter 3))
+(start machine)
 
-(output (set-register-contents! expt-machine 'base 5))
-
-(start expt-machine)
-
-(output (get-register-contents expt-machine 'product))
+(output (get-register-contents machine 'a))
