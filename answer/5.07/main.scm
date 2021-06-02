@@ -14,8 +14,7 @@
      (assemble controller-text machine)) ; instruction sequence is converted to the machine representation
     machine))
 
-; register is a procedure with the local state and set of messages that it answers to.
-
+; Register
 (define (make-register name)
   (let ((contents '*unassigned*))
     (define (dispatch message)
@@ -29,7 +28,7 @@
 (define (get-contents register) (register 'get))
 (define (set-contents! register value) ((register 'set) value))
 
-; stack implementation as a procedure with local state
+; Stack
 (define (make-stack)
   (let ((s '()))
     (define (push x)
@@ -53,8 +52,7 @@
 (define (pop stack) (stack 'pop))
 (define (push stack value) ((stack 'push) value))
 
-; implementation of the model of the machine
-
+; machine
 (define (make-new-machine)
   (let ((pc (make-register 'pc))
         (flag (make-register 'flag))
@@ -115,8 +113,7 @@
 (define (get-register machine reg-name) ((machine 'get-register) reg-name))
 
 
-; assembler is converting list of controller steps to a set of executable instructions
-
+; Assemble
 (define (assemble controller-text machine)
   (extract-labels controller-text
                   (lambda (insts labels)
@@ -168,8 +165,6 @@
     (if val
         (cdr val)
         (error "Undefined label -- ASSEMBLE" label-name))))
-
-; we have to make execution procedure for every machine instruction.
 
 (define (make-execution-procedure inst labels machine
                                   pc flag stack ops)
