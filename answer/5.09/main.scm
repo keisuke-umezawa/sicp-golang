@@ -27,6 +27,7 @@
     dispatch))
 
 (define (get-contents register) (register 'get))
+
 (define (set-contents! register value) ((register 'set) value))
 
 ; stack implementation as a procedure with local state
@@ -108,10 +109,13 @@
       dispatch)))
 
 (define (start machine) (machine 'start))
+
 (define (get-register-contents machine register-name) (get-contents (get-register machine register-name)))
+
 (define (set-register-contents! machine register-name value)
   (set-contents! (get-register machine register-name) value)
   'done)
+
 (define (get-register machine reg-name) ((machine 'get-register) reg-name))
 
 
@@ -165,6 +169,7 @@
 
 (define (make-label-entry label-name insts)
   (cons label-name insts))
+
 (define (lookup-label labels label-name)
   (let ((val (assoc label-name labels)))
     (if val
